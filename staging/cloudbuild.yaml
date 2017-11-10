@@ -153,7 +153,18 @@ steps:
       git config --global user.email "330612842442@cloudbuild.gserviceaccount.com"
       git config --global user.name "Google Container Builder"
       git add staging/app.yaml
-      git commit -m "Update app.yaml\n This is a auto-commit from Google Container Builder.\n Build ID: ${BUILD_ID}"
+
+      git commit -F- <<EOF
+      Update the pipeline-application in staging
+
+      This commit updates the pipeline-application deployment 
+      pipeline-application container image to:
+
+          gcr.io/${PROJECT_ID}/pipeline-application:${COMMIT_SHA}.
+
+      Build ID: ${BUILD_ID}
+      EOF
+
       git push origin master
   volumes:
     - name: 'ssh'
