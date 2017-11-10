@@ -137,8 +137,24 @@ steps:
         --local \
         -o yaml > app.yaml
       kubectl apply -f app.yaml
+      mv app.yaml /pipeline-infrastructure/staging/app.yaml
   volumes:
     - name: 'kube'
       path: /kube
+    - name: 'pipeline-infrastructure'
+      path: /pipeline-infrastructure
+
+- name: 'gcr.io/cloud-builders/git'
+  entrypoint: 'sh'
+  args:
+    - '-c'
+    - |
+      cd /pipeline-infrastructure/
+      git add staging/app.yaml
+      git commit -m "Update app.yaml\n This is a auto-commit from Google Container Builder.\n Build ID: ${BUILD_ID}"
+      git push origin master
+  volumes:
+    - name: 'ssh'
+      path: /root/.ssh
     - name: 'pipeline-infrastructure'
       path: /pipeline-infrastructure
