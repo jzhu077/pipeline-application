@@ -182,7 +182,7 @@ steps:
       EOF
       
       git push origin update-deployment-${BUILD_ID}
-      hub pull-request -b update-deployment-${BUILD_ID}
+      hub pull-request -b master -h update-deployment-${BUILD_ID}
 
   volumes:
     - name: 'ssh'
