@@ -136,8 +136,8 @@ steps:
                "spec": {
                  "containers":[
                    {
-                     "name": "helloworld",
-                     "image": "gcr.io/hightowerlabs/pipeline-app:$COMMIT_SHA"
+                     "name": "pipeline-application",
+                     "image": "gcr.io/${PROJECT_ID}/pipeline-application:${COMMIT_SHA}"
                    }
                  ]
                }
