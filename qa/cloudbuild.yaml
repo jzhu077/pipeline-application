@@ -182,7 +182,16 @@ steps:
       EOF
       
       git push origin update-deployment-${BUILD_ID}
-      hub pull-request -b master -h update-deployment-${BUILD_ID}
+      hub pull-request -b master -h update-deployment-${BUILD_ID} -F- <<EOF
+      Update the pipeline-application in production
+
+      This commit updates the pipeline-application deployment
+      pipeline-application container image to:
+
+          gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}.
+
+      Build ID: ${BUILD_ID}
+      EOF
 
   volumes:
     - name: 'ssh'
