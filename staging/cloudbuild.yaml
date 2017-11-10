@@ -132,24 +132,10 @@ steps:
   args:
     - '-c'
     - |
-      kubectl patch -f /pipeline-infrastructure/staging/app.yaml -p \
-        '{
-           "spec": {
-             "template": {
-               "spec": {
-                 "containers":[
-                   {
-                     "name": "pipeline-application",
-                     "image": "gcr.io/${PROJECT_ID}/pipeline-application:${COMMIT_SHA}"
-                   }
-                 ]
-               }
-             }
-           }
-         }' \
+      kubectl set image -f /pipeline-infrastructure/staging/app.yaml \
+        pipeline-application=gcr.io/${PROJECT_ID}/pipeline-application:${COMMIT_SHA} \
         --local \
         -o yaml > /pipeline-infrastructure/staging/app.yaml
-
       kubectl apply -f /pipeline-infrastructure/staging/app.yaml
   volumes:
     - name: 'kube'
