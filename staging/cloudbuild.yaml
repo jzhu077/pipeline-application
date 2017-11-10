@@ -117,10 +117,12 @@ steps:
   args:
     - clone
     - git@github.com:kelseyhightower/pipeline-infrastructure
-    - /workspace/pipeline-infrastructure
+    - /pipeline-infrastructure
   volumes:
     - name: 'ssh'
       path: /root/.ssh
+    - name: 'pipeline-infrastructure'
+      path: /pipeline-infrastructure
 
 # Update the Kubernetes deployment config.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -130,7 +132,7 @@ steps:
   args:
     - '-c'
     - |
-      kubectl patch -f /workspace/pipeline-infrastructure/staging/app.yaml -p \
+      kubectl patch -f /pipeline-infrastructure/staging/app.yaml -p \
         '{
            "spec": {
              "template": {
@@ -146,9 +148,11 @@ steps:
            }
          }' \
         --local \
-        -o yaml > /workspace/pipeline-infrastructure/staging/app.yaml
+        -o yaml > /pipeline-infrastructure/staging/app.yaml
 
-      kubectl apply -f /workspace/pipeline-infrastructure/staging/app.yaml
+      kubectl apply -f /pipeline-infrastructure/staging/app.yaml
   volumes:
     - name: 'kube'
       path: /kube
+    - name: 'pipeline-infrastructure'
+      path: /pipeline-infrastructure
