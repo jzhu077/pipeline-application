@@ -150,6 +150,7 @@ steps:
     - '-c'
     - |
       cd /pipeline-infrastructure/
+      git config --system credential.helper gcloud.sh
       git add staging/app.yaml
       git commit -m "Update app.yaml\n This is a auto-commit from Google Container Builder.\n Build ID: ${BUILD_ID}"
       git push origin master
