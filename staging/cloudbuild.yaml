@@ -77,7 +77,7 @@ steps:
   secretEnv: ['GITHUB_TOKEN']
   args:
     - clone
-    - https://${GITHUB_TOKEN}@github.com:kelseyhightower/pipeline-infrastructure.git
+    - https://$${GITHUB_TOKEN}@github.com:kelseyhightower/pipeline-infrastructure.git
     - /pipeline-infrastructure
   volumes:
     - name: 'pipeline-infrastructure'
