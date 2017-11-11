@@ -1,179 +1,170 @@
-# Retrieve the GitHub token from Cloud KMS.
-#
-# gcloud kms encrypt \
-#   --plaintext-file=github-token.txt \
-#   --ciphertext-file=github-token.txt.enc \
-#   --location=global \
-#   --keyring=pipeline \
-#   --key=github
-#
-# cat github-token.txt.enc | base64
-#
 secrets:
-- kmsKeyName: 'projects/hightowerlabs/locations/global/keyRings/pipeline/cryptoKeys/github'
-  secretEnv:
-    GITHUB_TOKEN: 'CiQAuSIxIYlCjL3ehz6Vxvy1oTC9rxYWO7fxQ4BXQj1Xh/vg8BwSUQDFjqKDNf5LeeNdbYSn8uRPGDxsAwHrvFCKHwT2M4HL3iJRYKkUKtPFLLyT6aUjrwSnwc0IUcSg+c3FWom4OoI3fLeqFlQmGdW1N+xNDhXSmg=='
+  # Retrieve the GitHub token from Cloud KMS.
+  - kmsKeyName: 'projects/hightowerlabs/locations/global/keyRings/pipeline/cryptoKeys/github'
+    secretEnv:
+      GITHUB_TOKEN: 'CiQAuSIxIYlCjL3ehz6Vxvy1oTC9rxYWO7fxQ4BXQj1Xh/vg8BwSUQDFjqKDNf5LeeNdbYSn8uRPGDxsAwHrvFCKHwT2M4HL3iJRYKkUKtPFLLyT6aUjrwSnwc0IUcSg+c3FWom4OoI3fLeqFlQmGdW1N+xNDhXSmg=='
 
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    - 'build'
-    - '-t'
-    - 'gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}'
-    - '.'
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    - 'push'
-    - 'gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}'
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}'
+      - '.'
 
-# Generate a kubeconfig file for the cluster identified by
-# ${_CLOUDSDK_CONTAINER_CLUSTER} in the zone identified by
-# ${_CLOUDSDK_COMPUTE_ZONE}.
-#
-# The generated kubeconfig file is written to /kube/config. Subsequent
-# steps can use the kubeconfig by setting the following:
-#
-#  env:
-#    - 'KUBECONFIG=/kube/config'
-#
-#  volumes:
-#    - name: 'kube'
-#      path: /kube
-#
-- name: 'gcr.io/cloud-builders/gcloud'
-  env:
-    - 'CLOUDSDK_COMPUTE_ZONE=${_CLOUDSDK_COMPUTE_ZONE}'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLOUDSDK_CONTAINER_CLUSTER}'
-    - 'KUBECONFIG=/kube/config'
-  entrypoint: 'sh'
-  args:
-    - '-c'
-    - |
-      CLUSTER=$$(gcloud config get-value container/cluster)
-      PROJECT=$$(gcloud config get-value core/project)
-      ZONE=$$(gcloud config get-value compute/zone)
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}'
+
+  # Generate a kubeconfig file for the cluster identified by
+  # ${_CLOUDSDK_CONTAINER_CLUSTER} in the zone identified by
+  # ${_CLOUDSDK_COMPUTE_ZONE}.
+  #
+  # The generated kubeconfig file is written to /kube/config. Subsequent
+  # steps can use the kubeconfig by setting the following:
+  #
+  #  env:
+  #    - 'KUBECONFIG=/kube/config'
+  #
+  #  volumes:
+  #    - name: 'kube'
+  #      path: /kube
+  #
+  - name: 'gcr.io/cloud-builders/gcloud'
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_CLOUDSDK_COMPUTE_ZONE}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLOUDSDK_CONTAINER_CLUSTER}'
+      - 'KUBECONFIG=/kube/config'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        CLUSTER=$$(gcloud config get-value container/cluster)
+        PROJECT=$$(gcloud config get-value core/project)
+        ZONE=$$(gcloud config get-value compute/zone)
       
-      cat <<EOF
-      Running: gcloud container clusters get-credentials "$${CLUSTER}" --project "$${PROJECT}" --zone "$${ZONE}"
-      EOF
+        cat <<EOF
+        Running: gcloud container clusters get-credentials "$${CLUSTER}" --project "$${PROJECT}" --zone "$${ZONE}"
+        EOF
 
-      gcloud container clusters get-credentials "$${CLUSTER}" \
-        --project "$${PROJECT}" \
-        --zone "$${ZONE}"
-  volumes:
-    - name: 'kube'
-      path: /kube
+        gcloud container clusters get-credentials "$${CLUSTER}" \
+          --project "$${PROJECT}" \
+          --zone "$${ZONE}"
+    volumes:
+      - name: 'kube'
+        path: /kube
 
-# Clone the pipeline-infrastructure repo which holds the Kubernetes
-# deployment manifests.
-- name: 'gcr.io/cloud-builders/git'
-  secretEnv: ['GITHUB_TOKEN']
-  entrypoint: 'sh'
-  args:
-    - '-c'
-    - |
-      git clone https://$$GITHUB_TOKEN@github.com/kelseyhightower/pipeline-infrastructure.git /pipeline-infrastructure
-  volumes:
-    - name: 'pipeline-infrastructure'
-      path: /pipeline-infrastructure
+  # Clone the pipeline-infrastructure repo which holds the Kubernetes
+  # deployment manifests.
+  - name: 'gcr.io/cloud-builders/git'
+    secretEnv: ['GITHUB_TOKEN']
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        git clone https://$$GITHUB_TOKEN@github.com/kelseyhightower/pipeline-infrastructure.git /pipeline-infrastructure
+    volumes:
+      - name: 'pipeline-infrastructure'
+        path: /pipeline-infrastructure
 
-# Update the Kubernetes deployment config.
-- name: 'gcr.io/cloud-builders/gcloud'
-  env:
-    - 'KUBECONFIG=/kube/config'
-  entrypoint: 'sh'
-  args:
-    - '-c'
-    - |
-      cat <<EOF > patch.yaml
-      spec:
-        template:
-          spec:
-            containers:
-              - name: pipeline-application
-                image: gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}
-      EOF
+  # Update the Kubernetes deployment config.
+  - name: 'gcr.io/cloud-builders/gcloud'
+    env:
+      - 'KUBECONFIG=/kube/config'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        cat <<EOF > patch.yaml
+        spec:
+          template:
+            spec:
+              containers:
+                - name: pipeline-application
+                  image: gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}
+        EOF
 
-      kubectl patch --local -o yaml \
-        -f /pipeline-infrastructure/qa/app.yaml \
-        -p "$(cat patch.yaml)" \
-        > app.yaml
+        kubectl patch --local -o yaml \
+          -f /pipeline-infrastructure/qa/app.yaml \
+          -p "$(cat patch.yaml)" \
+          > app.yaml
 
-      sed -i '/namespace/d' app.yaml
+        sed -i '/namespace/d' app.yaml
 
-      kubectl apply --namespace ${_NAMESPACE} -f app.yaml
+        kubectl apply --namespace ${_NAMESPACE} -f app.yaml
 
-      mv app.yaml /pipeline-infrastructure/qa/app.yaml
+        mv app.yaml /pipeline-infrastructure/qa/app.yaml
 
-      # Update the production Kubernetes deployment
-      kubectl patch --local -o yaml \
-        -f /pipeline-infrastructure/production/app.yaml \
-        -p "$(cat patch.yaml)" \
-        > app.yaml
+        # Update the production Kubernetes deployment
+        kubectl patch --local -o yaml \
+          -f /pipeline-infrastructure/production/app.yaml \
+          -p "$(cat patch.yaml)" \
+          > app.yaml
 
-      sed -i '/namespace/d' app.yaml 
+        sed -i '/namespace/d' app.yaml 
 
-      mv app.yaml /pipeline-infrastructure/production/app.yaml
-  volumes:
-    - name: 'kube'
-      path: /kube
-    - name: 'pipeline-infrastructure'
-      path: /pipeline-infrastructure
+        mv app.yaml /pipeline-infrastructure/production/app.yaml
+    volumes:
+      - name: 'kube'
+        path: /kube
+      - name: 'pipeline-infrastructure'
+        path: /pipeline-infrastructure
 
-- name: 'gcr.io/cloud-builders/git'
-  secretEnv: ['GITHUB_TOKEN']
-  entrypoint: 'sh'
-  args:
-    - '-c'
-    - |
-      apt-get -y update
-      apt-get -y install wget ca-certificates
-      wget https://github.com/github/hub/releases/download/v2.2.8/hub-linux-amd64-2.2.8.tgz
-      tar -xvf hub-linux-amd64-2.2.8.tgz
-      mv hub-linux-amd64-2.2.8/bin/hub /usr/local/bin/hub
+  - name: 'gcr.io/cloud-builders/git'
+    secretEnv: ['GITHUB_TOKEN']
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        apt-get -y update
+        apt-get -y install wget ca-certificates
+        wget https://github.com/github/hub/releases/download/v2.2.8/hub-linux-amd64-2.2.8.tgz
+        tar -xvf hub-linux-amd64-2.2.8.tgz
+        mv hub-linux-amd64-2.2.8/bin/hub /usr/local/bin/hub
 
-      cd /pipeline-infrastructure/
-      git config --global user.email "330612842442@cloudbuild.gserviceaccount.com"
-      git config --global user.name "Google Container Builder"
-      git add qa/app.yaml
+        cd /pipeline-infrastructure/
+        git config --global user.email "330612842442@cloudbuild.gserviceaccount.com"
+        git config --global user.name "Google Container Builder"
+        git add qa/app.yaml
 
-      git commit -F- <<EOF
-      Update the pipeline-application in qa
+        git commit -F- <<EOF
+        Update the pipeline-application in qa
 
-      This commit updates the pipeline-application deployment 
-      pipeline-application container image to:
+        This commit updates the pipeline-application deployment 
+        pipeline-application container image to:
 
-          gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}.
+            gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}.
 
-      Build ID: ${BUILD_ID}
-      EOF
+        Build ID: ${BUILD_ID}
+        EOF
 
-      git push origin master
+        git push origin master
 
-      git checkout -b update-deployment-${BUILD_ID}
-      git add production/app.yaml
-      git commit -F- <<EOF
-      Update the pipeline-application in production
+        git checkout -b update-deployment-${BUILD_ID}
+        git add production/app.yaml
+        git commit -F- <<EOF
+        Update the pipeline-application in production
 
-      This commit updates the pipeline-application deployment
-      pipeline-application container image to:
+        This commit updates the pipeline-application deployment
+        pipeline-application container image to:
 
-          gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}.
+            gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}.
 
-      Build ID: ${BUILD_ID}
-      EOF
+        Build ID: ${BUILD_ID}
+        EOF
       
-      git push origin update-deployment-${BUILD_ID}
-      hub pull-request -F- <<EOF
-      Update the pipeline-application in production
+        git push origin update-deployment-${BUILD_ID}
+        hub pull-request -F- <<EOF
+        Update the pipeline-application in production
 
-      This commit updates the pipeline-application deployment
-      pipeline-application container image to:
+        This commit updates the pipeline-application deployment
+        pipeline-application container image to:
 
-          gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}.
+            gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}.
 
-      Build ID: ${BUILD_ID}
-      EOF
-  volumes:
-    - name: 'pipeline-infrastructure'
-      path: /pipeline-infrastructure
+        Build ID: ${BUILD_ID}
+        EOF
+    volumes:
+      - name: 'pipeline-infrastructure'
+        path: /pipeline-infrastructure
