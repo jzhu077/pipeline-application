@@ -106,7 +106,7 @@ steps:
       mv app.yaml /pipeline-infrastructure/qa/app.yaml
 
       # Update the production Kubernetes deployment
-      kubectl patch --local --type json -o yaml \
+      kubectl patch --local -o yaml \
         -f /pipeline-infrastructure/production/app.yaml \
         -p "$(cat patch.yaml)" \
         > app.yaml
