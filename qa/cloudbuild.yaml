@@ -68,10 +68,11 @@ steps:
 # deployment manifests.
 - name: 'gcr.io/cloud-builders/git'
   secretEnv: ['GITHUB_TOKEN']
+  entrypoint: 'sh'
   args:
-    - clone
-    - https://${GITHUB_TOKEN}@github.com:kelseyhightower/pipeline-infrastructure.git
-    - /pipeline-infrastructure
+    - '-c'
+    - |
+      git clone https://$$GITHUB_TOKEN@github.com/kelseyhightower/pipeline-infrastructure.git /pipeline-infrastructure
   volumes:
     - name: 'pipeline-infrastructure'
       path: /pipeline-infrastructure
