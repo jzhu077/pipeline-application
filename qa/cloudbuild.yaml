@@ -164,7 +164,7 @@ steps:
       EOF
       
       git push origin update-deployment-${BUILD_ID}
-      hub pull-request -b master -h update-deployment-${BUILD_ID} -F- <<EOF
+      hub pull-request -F- <<EOF
       Update the pipeline-application in production
 
       This commit updates the pipeline-application deployment
