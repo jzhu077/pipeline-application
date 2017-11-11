@@ -135,7 +135,7 @@ steps:
 
       sed -i '/namespace/d' app.yaml
 
-      kubectl apply --namespace ${NAMESPACE} -f app.yaml
+      kubectl apply --namespace ${_NAMESPACE} -f app.yaml
 
       mv app.yaml /pipeline-infrastructure/qa/app.yaml
 
