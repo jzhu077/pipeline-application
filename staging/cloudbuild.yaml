@@ -56,7 +56,7 @@ steps:
   args:
     - '-c'
     - |
-      cat <<EOF | kubectl apply -f -
+      cat <<EOF | kubectl apply --namespace ${BRANCH_NAME} -f -
       kind: Namespace
       apiVersion: v1
       metadata:
@@ -136,7 +136,9 @@ steps:
         pipeline-application=gcr.io/${PROJECT_ID}/pipeline-application:${COMMIT_SHA} \
         --local \
         -o yaml > app.yaml
-      kubectl apply -f app.yaml
+
+      kubectl apply --namespace ${BRANCH_NAME} -f app.yaml
+
       mv app.yaml /pipeline-infrastructure/staging/app.yaml
   volumes:
     - name: 'kube'
