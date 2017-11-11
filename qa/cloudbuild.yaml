@@ -12,7 +12,7 @@
 secrets:
 - kmsKeyName: 'projects/hightowerlabs/locations/global/keyRings/pipeline/cryptoKeys/github'
   secretEnv:
-    GITHUB_TOKEN: 'CiQAuSIxIT74dPqyvNoVJbIMu8B6QGCw24LHtgTpBZqlG7dA3ywSUgDFjqKD8CJ7V0rlw9V6Tz+YTHazHsfJOieuHkLkipslR7G7p2ZbLl8+UJdc7EQL2BcYd6qgbFEl7L4+C6k4qds6VxuEEwPw9Ledhh5YtyVNTtc='
+    GITHUB_TOKEN: 'CiQAuSIxIYlCjL3ehz6Vxvy1oTC9rxYWO7fxQ4BXQj1Xh/vg8BwSUQDFjqKDNf5LeeNdbYSn8uRPGDxsAwHrvFCKHwT2M4HL3iJRYKkUKtPFLLyT6aUjrwSnwc0IUcSg+c3FWom4OoI3fLeqFlQmGdW1N+xNDhXSmg=='
 
 steps:
 - name: 'gcr.io/cloud-builders/docker'
