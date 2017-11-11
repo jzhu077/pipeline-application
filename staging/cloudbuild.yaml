@@ -75,6 +75,7 @@ steps:
 # deployment manifests.
 - name: 'gcr.io/cloud-builders/git'
   secretEnv: ['GITHUB_TOKEN']
+  entrypoint: 'sh'
   args:
     - '-c'
     - |
