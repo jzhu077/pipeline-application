@@ -132,20 +132,21 @@ steps:
   args:
     - '-c'
     - |
-      cat <<EOF > patch.json
-      [
-        {
-          "op": "replace",
-          "path": "/spec/template/spec/containers/0/image",
-          "value": "gcr.io/${PROJECT_ID}/pipeline-application:${COMMIT_SHA}"
-        }
-      ]
+      cat <<EOF > patch.yaml
+      spec:
+        template:
+          spec:
+            containers:
+              - name: pipeline-application
+                image: gcr.io/${PROJECT_ID}/pipeline-application:${COMMIT_SHA}
       EOF
 
-      kubectl patch --local --type json -o yaml \
+      kubectl patch --local -o yaml \
         -f /pipeline-infrastructure/staging/app.yaml \
-        -p "$(cat patch.json)" \
+        -p "$(cat patch.yaml)" \
         > app.yaml
+
+      sed -i '/namespace/d' app.yaml
 
       kubectl apply --namespace ${BRANCH_NAME} -f app.yaml
 
