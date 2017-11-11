@@ -78,7 +78,7 @@ steps:
   args:
     - '-c'
     - |
-    git clone https://$${GITHUB_TOKEN}@github.com:kelseyhightower/pipeline-infrastructure.git /pipeline-infrastructure
+      git clone "https://$${GITHUB_TOKEN}@github.com:kelseyhightower/pipeline-infrastructure.git" /pipeline-infrastructure
   volumes:
     - name: 'pipeline-infrastructure'
       path: /pipeline-infrastructure
