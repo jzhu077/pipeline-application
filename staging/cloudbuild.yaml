@@ -1,3 +1,8 @@
+secrets:
+- kmsKeyName: 'projects/hightowerlabs/locations/global/keyRings/pipeline/cryptoKeys/github'
+  secretEnv:
+    GITHUB_TOKEN: 'CiQAuSIxIT74dPqyvNoVJbIMu8B6QGCw24LHtgTpBZqlG7dA3ywSUgDFjqKD8CJ7V0rlw9V6Tz+YTHazHsfJOieuHkLkipslR7G7p2ZbLl8+UJdc7EQL2BcYd6qgbFEl7L4+C6k4qds6VxuEEwPw9Ledhh5YtyVNTtc='
+
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   args:
@@ -66,61 +71,15 @@ steps:
     - name: 'kube'
       path: /kube
 
-# Retrieve the encrypted SSH private key and known hosts file from GCS bucket 
-# identified by ${_BUCKET}.
-#
-# The SSH private key and known hosts file are stored under the /root/.ssh
-# directory.
-#
-- name: gcr.io/cloud-builders/gsutil
-  args:
-    - 'cp'
-    - 'gs://${_BUCKET}/pipeline/known_hosts'
-    - 'gs://${_BUCKET}/pipeline/pipeline_id_rsa.enc'
-    - '/root/.ssh'
-  volumes:
-    - name: 'ssh'
-      path: /root/.ssh
-
-# Decrypt the GitHub SSH private key.
-- name: 'gcr.io/cloud-builders/gcloud'
-  args:
-    - kms
-    - decrypt
-    - --ciphertext-file=/root/.ssh/pipeline_id_rsa.enc
-    - --plaintext-file=/root/.ssh/id_rsa
-    - --location=global
-    - --keyring=pipeline
-    - --key=github
-  volumes:
-    - name: 'ssh'
-      path: /root/.ssh
-
-# Generate an SSH config file.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'sh'
-  args:
-    - '-c'
-    - |
-      chmod 600 /root/.ssh/id_rsa
-      cat <<EOF >/root/.ssh/config
-      Hostname github.com
-      IdentityFile /root/.ssh/id_rsa
-      EOF
-  volumes:
-    - name: 'ssh'
-      path: /root/.ssh
-
 # Clone the pipeline-infrastructure repo which holds the Kubernetes
 # deployment manifests.
 - name: 'gcr.io/cloud-builders/git'
+  secretEnv: ['GITHUB_TOKEN']
   args:
     - clone
-    - git@github.com:kelseyhightower/pipeline-infrastructure
+    - https://${GITHUB_TOKEN}@github.com:kelseyhightower/pipeline-infrastructure.git
     - /pipeline-infrastructure
   volumes:
-    - name: 'ssh'
-      path: /root/.ssh
     - name: 'pipeline-infrastructure'
       path: /pipeline-infrastructure
 
@@ -180,7 +139,5 @@ steps:
 
       git push origin master
   volumes:
-    - name: 'ssh'
-      path: /root/.ssh
     - name: 'pipeline-infrastructure'
       path: /pipeline-infrastructure
