@@ -119,18 +119,30 @@ steps:
   args:
     - '-c'
     - |
-      kubectl set image -f /pipeline-infrastructure/qa/app.yaml \
-        pipeline-application=gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME} \
-        --local \
-        -o yaml > app.yaml
+      cat <<EOF > patch.json
+      [
+        {
+          "op": "replace",
+          "path": "/spec/template/spec/containers/0/image",
+          "value": "gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME}"
+        }
+      ]
+      EOF
+
+      kubectl patch --local --type json -o yaml \
+        -f /pipeline-infrastructure/qa/app.yaml \
+        -p "$(cat patch.json)" \
+        > app.yaml
+
       kubectl apply -f app.yaml
       mv app.yaml /pipeline-infrastructure/qa/app.yaml
 
       # Update the production Kubernetes deployment
-      kubectl set image -f /pipeline-infrastructure/production/app.yaml \
-        pipeline-application=gcr.io/${PROJECT_ID}/pipeline-application:${TAG_NAME} \
-        --local \
-        -o yaml > app.yaml
+      kubectl patch --local --type json -o yaml \
+        -f /pipeline-infrastructure/production/app.yaml \
+        -p "$(cat patch.json)" \
+        > app.yaml
+
       mv app.yaml /pipeline-infrastructure/production/app.yaml
   volumes:
     - name: 'kube'
