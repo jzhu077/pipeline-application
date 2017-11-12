@@ -21,7 +21,7 @@ steps:
       - |
         gsutil cp gs://${PROJECT_ID}-pipeline-configs/hub.enc hub.enc
 
-        kms decrypt \
+        gcloud kms decrypt \
           --ciphertext-file hub.enc \
           --plaintext-file /config/hub \
           --location global \
