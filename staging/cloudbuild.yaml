@@ -39,6 +39,12 @@ steps:
     args:
       - '-c'
       - |
+        apt-get -y update
+        apt-get -y install wget ca-certificates
+        wget https://github.com/github/hub/releases/download/v2.2.8/hub-linux-amd64-2.2.8.tgz
+        tar -xvf hub-linux-amd64-2.2.8.tgz
+        mv hub-linux-amd64-2.2.8/bin/hub /usr/local/bin/hub
+
         ACTIVE_ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
 
         hub config --global hub.protocol https
