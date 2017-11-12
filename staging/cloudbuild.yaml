@@ -1,3 +1,9 @@
+#
+# User-defined substitutions:
+#   _GITHUB_USERNAME
+#   _KMS_KEY 
+#   _KMS_KEYRING
+#
 steps:
   # Build the pipeline container image.
   - name: 'gcr.io/cloud-builders/docker'
@@ -13,23 +19,22 @@ steps:
     args:
       - '-c'
       - |
-        gsutil cp gs://${PROJECT_ID}-pipeline-config/hub.enc hub.enc
+        gsutil cp gs://${PROJECT_ID}-pipeline-configs/hub.enc hub.enc
 
         kms decrypt \
-          --ciphertext-file=hub.enc \
-          --plaintext-file=/config/hub \
-          --location=global \
-          --keyring=${_KMS_KEYRING} \
-          --key=${_KMS_KEY}
+          --ciphertext-file hub.enc \
+          --plaintext-file /config/hub \
+          --location global \
+          --keyring ${_KMS_KEYRING} \
+          --key ${_KMS_KEY}
     volumes:
       - name: 'config'
         path: /config
 
-  # Clone the pipeline-infrastructure repo which holds the Kubernetes
-  # deployment manifests.
+  # Clone the pipeline-infrastructure-staging repo.
   - name: 'gcr.io/cloud-builders/gcloud'
     env:
-      - 'HUBCONFIG=/config/hub'
+      - 'HUB_CONFIG=/config/hub'
     entrypoint: 'sh'
     args:
       - '-c'
@@ -79,4 +84,4 @@ steps:
         path: /config
 
 images:
-  - gcr.io/${PROJECT_ID}/pipeline:${COMMIT_SHA}
+  - 'gcr.io/${PROJECT_ID}/pipeline:${COMMIT_SHA}'
