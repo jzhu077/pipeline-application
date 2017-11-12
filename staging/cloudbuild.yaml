@@ -35,6 +35,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     env:
       - 'HUB_CONFIG=/config/hub'
+      - 'HUB_VERBOSE=1'
     entrypoint: 'sh'
     args:
       - '-c'
