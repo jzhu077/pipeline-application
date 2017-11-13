@@ -94,8 +94,7 @@ steps:
 
         kubectl version -c
 
-        kubectl patch --type json --local false -o yaml \
-          --include-extended-apis=false \
+        kubectl patch --type json --local -o yaml \
           -f kubernetes/deployments/pipeline.yaml \
           -p "$(cat patch.yaml)" \
           > pipeline.yaml
