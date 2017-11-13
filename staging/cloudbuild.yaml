@@ -35,7 +35,6 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     env:
       - 'HUB_CONFIG=/config/hub'
-      - 'HUB_VERBOSE=1'
     entrypoint: 'sh'
     args:
       - '-c'
@@ -70,6 +69,8 @@ steps:
                 - name: pipeline
                   image: gcr.io/${PROJECT_ID}/pipeline:${COMMIT_SHA}
         EOF
+
+        kubectl version -c
 
         kubectl patch --type json --local -o yaml \
           -f kubernetes/deployments/pipeline.yaml \
