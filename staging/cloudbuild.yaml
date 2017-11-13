@@ -53,7 +53,7 @@ steps:
         path: /kube
 
   # Clone the pipeline-infrastructure-staging repo.
-  - name: 'gcr.io/cloud-builders/gcloud'
+  - name: 'gcr.io/hightowerlabs/hub'
     env:
       - 'HUB_CONFIG=/config/hub'
       - 'KUBECONFIG=/kube/config'
@@ -61,21 +61,8 @@ steps:
     args:
       - '-c'
       - |
-        apt-get -y update
-        apt-get -y install wget ca-certificates
-        wget https://github.com/kelseyhightower/hub-credential-helper/releases/download/0.0.1/hub-credential-helper-linux-amd64-0.0.1.tgz
-        wget https://github.com/github/hub/releases/download/v2.2.8/hub-linux-amd64-2.2.8.tgz
-
-        tar -xvf hub-credential-helper-linux-amd64-0.0.1.tgz
-        tar -xvf hub-linux-amd64-2.2.8.tgz
-
-        mv hub-credential-helper /usr/local/bin/hub-credential-helper
-        mv hub-linux-amd64-2.2.8/bin/hub /usr/local/bin/hub
-
         ACTIVE_ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
 
-        hub config --global credential.https://github.com.helper /usr/local/bin/hub-credential-helper
-        hub config --global hub.protocol https
         hub config --global user.email "$${ACTIVE_ACCOUNT}"
         hub config --global user.name "Google Container Builder"
 
