@@ -50,7 +50,7 @@ steps:
   # deployment manifests.
   - name: 'gcr.io/cloud-builders/gcloud'
     env:
-      - 'HUBCONFIG=/config/hub'
+      - 'HUB_CONFIG=/config/hub'
       - 'KUBECONFIG=/kube/config'
     entrypoint: 'sh'
     args:
