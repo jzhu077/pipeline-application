@@ -2,13 +2,13 @@
 
 ## Usage
 
-Changes pushed to the any branch except master should trigger the following actions:
+Changes pushed to any branch except master should trigger the following actions:
 
   - build a container image tagged with the build ID suitable for deploying to a staging cluster
   - clone the [pipeline-infrastructure-staging](https://github.com/kelseyhightower/pipeline-infrastructure-staging) repo
   - patch the pipeline deployment configuration file with the staging container image and commit the changes to the `pipeline-infrastructure-staging` repo
 
-> The `pipeline-infrastructure-staging` repo will deploy and updates committed to the master branch.
+> The `pipeline-infrastructure-staging` repo will deploy any updates committed to the master branch.
 
 Tagging this repo should trigger the following actions:
 
