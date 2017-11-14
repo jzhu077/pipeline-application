@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	version = "v1.0.0"
+	version = "v2.0.0"
 )
 
 func main() {
